@@ -17,7 +17,7 @@
       <x>10</x>
       <y>10</y>
       <width>221</width>
-      <height>201</height>
+      <height>221</height>
      </rect>
     </property>
     <layout class="QVBoxLayout" name="layout">
@@ -37,22 +37,6 @@
     </layout>
    </widget>
   </widget>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>240</width>
-     <height>23</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menu">
-    <property name="title">
-     <string>&amp;Menu</string>
-    </property>
-   </widget>
-   <addaction name="menu"/>
-  </widget>
   <action name="actTop">
    <property name="checkable">
     <bool>true</bool>
@@ -63,53 +47,6 @@
    <property name="toolTip">
     <string>Always on top</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl+T</string>
-   </property>
-  </action>
-  <action name="actX2">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>x2</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+2</string>
-   </property>
-  </action>
-  <action name="actX3">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>x3</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+3</string>
-   </property>
-  </action>
-  <action name="actX4">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>x4</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+4</string>
-   </property>
-  </action>
-  <action name="actX5">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="text">
-    <string>x5</string>
-   </property>
-   <property name="shortcut">
-    <string>Ctrl+5</string>
-   </property>
   </action>
   <action name="actQuit">
    <property name="icon">
@@ -119,18 +56,6 @@
    <property name="text">
     <string>&amp;Quit</string>
    </property>
-   <property name="shortcut">
-    <string>Ctrl+Q</string>
-   </property>
-  </action>
-  <action name="actPrefs">
-   <property name="icon">
-    <iconset theme="preferences-desktop">
-     <normaloff>.</normaloff>.</iconset>
-   </property>
-   <property name="text">
-    <string>&amp;Preferences</string>
-   </property>
   </action>
   <action name="actAbout">
    <property name="icon">
@@ -139,6 +64,14 @@
    </property>
    <property name="text">
     <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="actAutoStart">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Auto&amp;start</string>
    </property>
   </action>
  </widget>
