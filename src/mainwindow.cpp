@@ -39,7 +39,6 @@ MainWindow::MainWindow(QSystemTrayIcon *icon, QWidget *parent)
     ui->setupUi(this);
     ui->centralwidget->setLayout(ui->layout);
 
-    Qt::Key key;
     for (int i = 0; i < 4; ++i)
     {
         actZoom[i] = new QAction("x&" + QString::number(i + 2) , this);
