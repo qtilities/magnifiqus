@@ -18,6 +18,7 @@
 #include <QApplication>
 #include <QCursor>
 #include <QDesktopWidget>
+#include <QIcon>
 #include <QPainter>
 #include <QPaintEvent>
 #include <QScreen>
@@ -77,10 +78,14 @@ void Magnifiqus::paintEvent(QPaintEvent *)
                              topL.y() - vBound * 2,
                              w + hBound * 2,
                              h + vBound * 2);
-    if (boundRect.contains(QCursor::pos()))
-        return;
-
     QPainter painter(this);
+
+    if (boundRect.contains(QCursor::pos()))
+    {
+        QPixmap p = QIcon(":/appicon").pixmap(w, h);
+        painter.drawPixmap(0, 0, p);
+        return;
+    }
     painter.drawPixmap(0, 0, pixmap_.scaledToHeight(height() * ratio_));
 }
 void Magnifiqus::updatePosition()
