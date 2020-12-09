@@ -15,16 +15,15 @@ find_package(QT NAMES Qt6 Qt5)
 find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
 
 set (RESOURCE_FILES resources/resources.qrc)
-
-add_executable(${PROJECT_NAME}
-    src/magnifiqus.h
+set (SOURCE_FILES
     src/mainwindow.h
-    src/magnifiqus.cpp
     src/mainwindow.cpp
-    src/mainwindow.ui
     src/main.cpp
+)
+add_executable(${PROJECT_NAME}
+    ${SOURCE_FILES}
     ${RESOURCE_FILES}
-    )
+)
 source_group ("Resource Files" FILES ${RESOURCE_FILES})
 target_include_directories(${PROJECT_NAME} PRIVATE "src")
 target_link_libraries(${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)

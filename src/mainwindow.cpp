@@ -14,30 +14,47 @@
     For a full copy of the GNU General Public License see the LICENSE file
 */
 #include "mainwindow.h"
-#include "ui_mainwindow.h"
-#include "magnifiqus.h"
 
+#include <QApplication>
 #include <QDebug>
+#include <QDesktopWidget>
 #include <QDir>
 #include <QFile>
 #include <QMenu>
 #include <QMessageBox>
 #include <QMouseEvent>
+#include <QPainter>
+#include <QScreen>
 #include <QSettings>
 #include <QStandardPaths>
 #include <QSystemTrayIcon>
 #include <QTimer>
 
+static QScreen *findScreenAt(const QPoint &pos)
+{
+    for (QScreen *screen : QGuiApplication::screens())
+    {
+        if (screen->geometry().contains(pos))
+            return screen;
+    }
+    return nullptr;
+}
 MainWindow::MainWindow(QSystemTrayIcon *icon, QWidget *parent)
     : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
-    , actionGroup(new QActionGroup(this))
-    , timer_(new QTimer(this))
-    , trayMenu(new QMenu(this))
-    , trayIcon(icon)
+    , actAbout     (new QAction(QIcon::fromTheme("help-about"), tr("&About"), this))
+    , actAutoStart (new QAction(tr("Auto&start"), this))
+    , actQuit      (new QAction(QIcon::fromTheme("application-exit"), tr("&Quit"), this))
+    , actTop       (new QAction(tr("Always on &Top"), this))
+    , actionGroup  (new QActionGroup(this))
+    , tmrDrag_     (new QTimer(this))
+    , tmrUpdatePos_(new QTimer(this))
+    , trayMenu     (new QMenu(this))
+    , trayIcon     (icon)
+    , blockEvents_ (false)
+    , ratio_       (ratio_min)
 {
-    ui->setupUi(this);
-    ui->centralwidget->setLayout(ui->layout);
+    actAutoStart->setCheckable(true);
+    actTop->setCheckable(true);
 
     for (int i = 0; i < 4; ++i)
     {
@@ -51,21 +68,21 @@ MainWindow::MainWindow(QSystemTrayIcon *icon, QWidget *parent)
         connect(actZoom[i], &QAction::triggered, this, &MainWindow::onRatioSelected);
     }
     trayMenu->addSeparator();
-    trayMenu->addAction(ui->actTop);
-    trayMenu->addAction(ui->actAutoStart);
+    trayMenu->addAction(actTop);
+    trayMenu->addAction(actAutoStart);
     trayMenu->addSeparator();
-    trayMenu->addAction(ui->actAbout);
+    trayMenu->addAction(actAbout);
     trayMenu->addSeparator();
-    trayMenu->addAction(ui->actQuit);
+    trayMenu->addAction(actQuit);
 
     trayIcon->setContextMenu(trayMenu);
     trayIcon->show();
 
-    connect(ui->magnifiqus, &Magnifiqus::sigRatioChanged, this, &MainWindow::onRatioChanged);
-    connect(ui->actTop,   &QAction::triggered, this, &MainWindow::onTopChecked);
-    connect(ui->actAbout, &QAction::triggered, this, &MainWindow::onAboutClicked);
-    connect(ui->actQuit,  &QAction::triggered, qApp, &QCoreApplication::quit);
-    connect(qApp, &QCoreApplication::aboutToQuit, this, &MainWindow::onAboutToQuit);
+    connect(qApp,     &QCoreApplication::aboutToQuit, this, &MainWindow::onAboutToQuit);
+    connect(this,     &MainWindow::sigRatioChanged,   this, &MainWindow::onRatioChanged);
+    connect(actAbout, &QAction::triggered,            this, &MainWindow::onAboutClicked);
+    connect(actTop,   &QAction::triggered,            this, &MainWindow::onTopChecked);
+    connect(actQuit,  &QAction::triggered,            qApp, &QCoreApplication::quit);
 
     connect(trayIcon, &QSystemTrayIcon::activated,
     [=](QSystemTrayIcon::ActivationReason reason)
@@ -75,11 +92,14 @@ MainWindow::MainWindow(QSystemTrayIcon *icon, QWidget *parent)
     });
     // FIXME: setMouseTracking doesn't make the thing work
     setMouseTracking(true);
-    timer_->setSingleShot(true);
-    connect(timer_, &QTimer::timeout, this, &MainWindow::setEndDragging);
+    tmrDrag_->setSingleShot(true);
+    connect(tmrDrag_, &QTimer::timeout, this, &MainWindow::setEndDragging);
+
+    tmrUpdatePos_->setInterval(10);
+    connect(tmrUpdatePos_, &QTimer::timeout, this, &MainWindow::updatePosition);
 
     setWindowIcon(QIcon(":/appicon"));
-    setWindowTitle("x" + QString::number(ui->magnifiqus->ratio()));
+    setWindowTitle("x" + QString::number(ratio_));
     loadSettings();
 }
 MainWindow::~MainWindow()
@@ -87,8 +107,8 @@ MainWindow::~MainWindow()
 }
 void MainWindow::moveEvent(QMoveEvent *)
 {
-    timer_->start(50);
-    ui->magnifiqus->blockEvents(true);
+    tmrDrag_->start(50);
+    blockEvents_= true;
 }
 void MainWindow::closeEvent(QCloseEvent *event)
 {
@@ -97,12 +117,39 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->ignore();
     }
 }
+void MainWindow::paintEvent(QPaintEvent *)
+{
+    if (blockEvents_)
+        return;
+
+    int    w         = width();
+    int    h         = height();
+    int    hBound    = w  / ratio_ / 2;
+    int    vBound    = h  / ratio_ / 2;
+    QPoint topL      = mapToGlobal(rect().topLeft());
+    QRect  boundRect = QRect(topL.x() - hBound,
+                             topL.y() - vBound * 2,
+                             w + hBound * 2,
+                             h + vBound * 2);
+    QPainter painter(this);
+
+    if (boundRect.contains(QCursor::pos()))
+    {
+        QPixmap p = QIcon(":/appicon").pixmap(w, h);
+        painter.drawPixmap(0, 0, p);
+        return;
+    }
+    painter.drawPixmap(0, 0, pixmap_.scaledToHeight(height() * ratio_));
+}
+void MainWindow::showEvent(QShowEvent *)
+{
+    updatePosition();
+    tmrUpdatePos_->start();
+}
 void MainWindow::onAboutToQuit()
 {
-    ui->actAutoStart->isChecked() ? createAutostartFile() : deleteAutostartFile();
+    actAutoStart->isChecked() ? createAutostartFile() : deleteAutostartFile();
     saveSettings();
-
-    delete ui;
 }
 void MainWindow::onAboutClicked()
 {
@@ -119,9 +166,9 @@ void MainWindow::onAboutClicked()
 }
 void MainWindow::onRatioChanged(int value)
 {
-    ui->magnifiqus->blockSignals(true);
+    blockSignals(true);
     actZoom[value - 2]->setChecked(true);
-    ui->magnifiqus->blockSignals(false);
+    blockSignals(false);
 }
 void MainWindow::onRatioSelected()
 {
@@ -136,9 +183,9 @@ void MainWindow::onRatioSelected()
     else
         newValue = 5;
 
-    ui->magnifiqus->blockSignals(true);
-    ui->magnifiqus->setRatio(newValue);
-    ui->magnifiqus->blockSignals(false);
+    blockSignals(true);
+    setRatio(newValue);
+    blockSignals(false);
 
     setWindowTitle("x" + QString::number(newValue));
 }
@@ -160,13 +207,14 @@ void MainWindow::loadSettings()
 
     settings.beginGroup("Main");
     move(settings.value("Position", QPoint(200, 200)).toPoint());
+    resize(settings.value("Size", QSize(240, 240)).toSize());
 
     Qt::WindowFlags flags = windowFlags();
     bool            onTop = settings.value("AlwaysOnTop", true).toBool();
     if (onTop)
     {
         flags |= Qt::WindowStaysOnTopHint;
-        ui->actTop->setChecked(true);
+        actTop->setChecked(true);
     }
     else
     {
@@ -174,12 +222,12 @@ void MainWindow::loadSettings()
     }
     setWindowFlags(flags);
 
-    ui->actAutoStart->setChecked(settings.value("AutoStart", false).toBool());
+    actAutoStart->setChecked(settings.value("AutoStart", false).toBool());
 
     int ratio = settings.value("Zoom", 2).toUInt();
-    if      (ratio < Magnifiqus::ratio_min) ratio = Magnifiqus::ratio_min;
-    else if (ratio > Magnifiqus::ratio_max) ratio = Magnifiqus::ratio_max;
-    ui->magnifiqus->setRatio(ratio);
+    if      (ratio < ratio_min) ratio = ratio_min;
+    else if (ratio > ratio_max) ratio = ratio_max;
+    setRatio(ratio);
 
     setWindowTitle("x" + QString::number(ratio));
     settings.endGroup();
@@ -197,10 +245,11 @@ void MainWindow::saveSettings()
             zoom = i + 2;
     }
     settings.beginGroup("Main");
-    settings.setValue("Position", pos());
-    settings.setValue("AutoStart",   ui->actAutoStart->isChecked());
-    settings.setValue("AlwaysOnTop", ui->actTop->isChecked());
-    settings.setValue("Zoom", zoom);
+    settings.setValue("Position",    pos());
+    settings.setValue("Size",        size());
+    settings.setValue("AutoStart",   actAutoStart->isChecked());
+    settings.setValue("AlwaysOnTop", actTop->isChecked());
+    settings.setValue("Zoom",        zoom);
 }
 void MainWindow::createAutostartFile()
 {
@@ -232,5 +281,31 @@ void MainWindow::deleteAutostartFile()
 }
 void MainWindow::setEndDragging()
 {
-    ui->magnifiqus->blockEvents(false);
+    blockEvents_= false;
+}
+void MainWindow::setRatio(int value)
+{
+    if (value < ratio_min || value == ratio_ || value > ratio_max)
+        return;
+
+    ratio_= value;
+    emit sigRatioChanged(value);
+}
+void MainWindow::updatePosition()
+{
+    if (blockEvents_)
+        return;
+
+    QPoint   pos    = QCursor::pos();
+    int      w      = width();
+    int      h      = height();
+    QScreen *screen = findScreenAt(pos);
+    if (!screen)
+        return;
+
+    WId wid = QApplication::desktop()->winId();
+    pixmap_ = screen->grabWindow(wid,
+                                 pos.x() - w / ratio_ / 2,
+                                 pos.y() - h / ratio_ / 2, w, h);
+    update();
 }

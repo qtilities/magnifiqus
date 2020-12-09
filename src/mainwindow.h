@@ -16,10 +16,6 @@
 #pragma once
 #include <QMainWindow>
 
-QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
-QT_END_NAMESPACE
-
 class QActionGroup;
 class QSystemTrayIcon;
 class MainWindow : public QMainWindow
@@ -33,6 +29,8 @@ public:
 private:
     void moveEvent(QMoveEvent *);
     void closeEvent(QCloseEvent *);
+    void paintEvent(QPaintEvent *) override;
+    void showEvent(QShowEvent *) override;
     void onAboutToQuit();
 
     void onAboutClicked();
@@ -47,11 +45,26 @@ private:
     void deleteAutostartFile();
 
     void setEndDragging();
+    void setRatio(int);
+    void updatePosition();
 
-    Ui::MainWindow  *ui;
-    QAction         *actZoom[4];
+    static constexpr int ratio_min = 2;
+    static constexpr int ratio_max = 5;
+
+    QAction         *actAbout,
+                    *actAutoStart,
+                    *actQuit,
+                    *actTop,
+                    *actZoom[4];
     QActionGroup    *actionGroup;
-    QTimer          *timer_;
+    QPixmap         pixmap_;
+    QTimer          *tmrDrag_;
+    QTimer          *tmrUpdatePos_;
     QMenu           *trayMenu;
     QSystemTrayIcon *trayIcon;
+    bool            blockEvents_;
+    int             ratio_;
+
+signals:
+    void sigRatioChanged(int);
 };
