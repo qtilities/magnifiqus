@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>about.html</file>
+        <file alias="appicon">icons/magnifiqus.svg</file>
+    </qresource>
+</RCC>
