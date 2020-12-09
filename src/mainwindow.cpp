@@ -162,7 +162,7 @@ void MainWindow::loadSettings()
     move(settings.value("Position", QPoint(200, 200)).toPoint());
 
     Qt::WindowFlags flags = windowFlags();
-    bool            onTop = settings.value("AlwaysOnTop", false).toBool();
+    bool            onTop = settings.value("AlwaysOnTop", true).toBool();
     if (onTop)
     {
         flags |= Qt::WindowStaysOnTopHint;
