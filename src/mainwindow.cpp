@@ -46,11 +46,12 @@ MainWindow::MainWindow(QSystemTrayIcon *icon, QWidget *parent)
     , actQuit      (new QAction(QIcon::fromTheme("application-exit"), tr("&Quit"), this))
     , actTop       (new QAction(tr("Always on &Top"), this))
     , actionGroup  (new QActionGroup(this))
-    , tmrDrag_     (new QTimer(this))
+    , tmrShowRatio_(new QTimer(this))
     , tmrUpdatePos_(new QTimer(this))
     , trayMenu     (new QMenu(this))
     , trayIcon     (icon)
-    , blockEvents_ (false)
+    , dragging_    (false)
+    , ratioChanged_(false)
     , ratio_       (ratio_min)
 {
     actAutoStart->setCheckable(true);
@@ -90,25 +91,20 @@ MainWindow::MainWindow(QSystemTrayIcon *icon, QWidget *parent)
         if (reason == QSystemTrayIcon::Trigger || reason == QSystemTrayIcon::DoubleClick)
             setVisible(!isVisible());
     });
-    // FIXME: setMouseTracking doesn't make the thing work
-    setMouseTracking(true);
-    tmrDrag_->setSingleShot(true);
-    connect(tmrDrag_, &QTimer::timeout, this, &MainWindow::setEndDragging);
-
     tmrUpdatePos_->setInterval(10);
     connect(tmrUpdatePos_, &QTimer::timeout, this, &MainWindow::updatePosition);
 
+    tmrShowRatio_->setInterval(1000);
+    connect(tmrShowRatio_, &QTimer::timeout, this, &MainWindow::notifyRatioComplete);
+
+    setMouseTracking(true);
+    setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     setWindowIcon(QIcon(":/appicon"));
     setWindowTitle("x" + QString::number(ratio_));
     loadSettings();
 }
 MainWindow::~MainWindow()
 {
-}
-void MainWindow::moveEvent(QMoveEvent *)
-{
-    tmrDrag_->start(50);
-    blockEvents_= true;
 }
 void MainWindow::closeEvent(QCloseEvent *event)
 {
@@ -117,34 +113,107 @@ void MainWindow::closeEvent(QCloseEvent *event)
         event->ignore();
     }
 }
+void MainWindow::mousePressEvent(QMouseEvent *event)
+{
+    if (event->button() == Qt::LeftButton) {
+        lastPoint_= event->pos();
+        dragging_ = true;
+    }
+    QMainWindow::mousePressEvent(event);
+}
+void MainWindow::mouseReleaseEvent(QMouseEvent *event)
+{
+    if ((event->buttons() & Qt::LeftButton) && dragging_)
+        dragging_= false;
+}
+void MainWindow::mouseMoveEvent(QMouseEvent *event)
+{
+    QPoint pos = QCursor::pos();
+    QPoint bottomRight = mapToGlobal(rect().bottomRight());
+    bool isOverBottomLeftCorner = pos.x() > bottomRight.x() - 20 &&
+                                  pos.y() > bottomRight.y() - 20;
+    if (isOverBottomLeftCorner)
+        setCursor(Qt::SizeFDiagCursor);
+    else
+        setCursor(Qt::ArrowCursor);
+
+    if ((event->buttons() & Qt::LeftButton) && dragging_)
+    {
+        if (isOverBottomLeftCorner)
+        {
+            // FIXME: the window jumps on other places when resizing below 0
+            // or in some shapes
+            int w = pos.x() - x();
+            int h = pos.y() - y();
+            if (w > 10 && h > 10)
+                resize(w, h);
+        }
+        else
+        {
+            move(event->globalX() - lastPoint_.x(), event->globalY() - lastPoint_.y());
+        }
+        update();
+    }
+    QMainWindow::mouseMoveEvent(event);
+}
 void MainWindow::paintEvent(QPaintEvent *)
 {
-    if (blockEvents_)
-        return;
-
     int    w         = width();
     int    h         = height();
-    int    hBound    = w  / ratio_ / 2;
-    int    vBound    = h  / ratio_ / 2;
+    int    hBound    = w / ratio_/ 2;
+    int    vBound    = h / ratio_/ 2;
     QPoint topL      = mapToGlobal(rect().topLeft());
     QRect  boundRect = QRect(topL.x() - hBound,
-                             topL.y() - vBound * 2,
+                             topL.y() - vBound,
                              w + hBound * 2,
                              h + vBound * 2);
     QPainter painter(this);
-
     if (boundRect.contains(QCursor::pos()))
     {
+        // Avoid to get a "mirror on mirror" effect
+        // FIXME: crap is drawn when hovering near the desktop borders
         QPixmap p = QIcon(":/appicon").pixmap(w, h);
         painter.drawPixmap(0, 0, p);
-        return;
     }
-    painter.drawPixmap(0, 0, pixmap_.scaledToHeight(height() * ratio_));
+    else
+    {
+        painter.drawPixmap(0, 0, pixmap_.scaledToHeight(h * ratio_));
+    }
+    // Draw the frame border
+    QPen pen(QColor("#181818"));
+    pen.setWidth(2);
+    painter.setPen(pen);
+    painter.drawRect(QRect(rect().x() + 1,
+                           rect().y() + 1,
+                           rect().width()  - 2,
+                           rect().height() - 2));
+    if (ratioChanged_)
+    {
+        // Notify the changed ratio on the top right corner using the mouse wheel
+        painter.setPen(Qt::white);
+        QFont font(this->font());
+        font.setPointSize(24);
+        font.setBold(true);
+        painter.setFont(font);
+        painter.drawText(rect().topRight().x() - 42,
+                         rect().topRight().y() + 28,
+                         "x" + QString::number(ratio_));
+    }
 }
 void MainWindow::showEvent(QShowEvent *)
 {
     updatePosition();
     tmrUpdatePos_->start();
+}
+void MainWindow::wheelEvent(QWheelEvent *event)
+{
+    QPoint degrees = event->angleDelta() / 8;
+    if (!degrees.isNull())
+    {
+        int newRatio = degrees.y() / 15 + ratio_;
+        setRatio(newRatio);
+    }
+    event->accept();
 }
 void MainWindow::onAboutToQuit()
 {
@@ -168,6 +237,8 @@ void MainWindow::onRatioChanged(int value)
 {
     blockSignals(true);
     actZoom[value - 2]->setChecked(true);
+    ratioChanged_= true;
+    tmrShowRatio_->start();
     blockSignals(false);
 }
 void MainWindow::onRatioSelected()
@@ -279,10 +350,6 @@ void MainWindow::deleteAutostartFile()
 
     file.remove();
 }
-void MainWindow::setEndDragging()
-{
-    blockEvents_= false;
-}
 void MainWindow::setRatio(int value)
 {
     if (value < ratio_min || value == ratio_ || value > ratio_max)
@@ -293,9 +360,6 @@ void MainWindow::setRatio(int value)
 }
 void MainWindow::updatePosition()
 {
-    if (blockEvents_)
-        return;
-
     QPoint   pos    = QCursor::pos();
     int      w      = width();
     int      h      = height();
@@ -308,4 +372,8 @@ void MainWindow::updatePosition()
                                  pos.x() - w / ratio_ / 2,
                                  pos.y() - h / ratio_ / 2, w, h);
     update();
+}
+void MainWindow::notifyRatioComplete()
+{
+    ratioChanged_= false;
 }

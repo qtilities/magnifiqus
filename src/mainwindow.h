@@ -27,10 +27,13 @@ public:
     ~MainWindow();
 
 private:
-    void moveEvent(QMoveEvent *);
-    void closeEvent(QCloseEvent *);
+    void closeEvent(QCloseEvent *) override;
+    void mousePressEvent(QMouseEvent *) override;
+    void mouseReleaseEvent(QMouseEvent *) override;
+    void mouseMoveEvent(QMouseEvent *) override;
     void paintEvent(QPaintEvent *) override;
     void showEvent(QShowEvent *) override;
+    void wheelEvent(QWheelEvent *) override;
     void onAboutToQuit();
 
     void onAboutClicked();
@@ -44,9 +47,9 @@ private:
     void createAutostartFile();
     void deleteAutostartFile();
 
-    void setEndDragging();
     void setRatio(int);
     void updatePosition();
+    void notifyRatioComplete();
 
     static constexpr int ratio_min = 2;
     static constexpr int ratio_max = 5;
@@ -58,11 +61,13 @@ private:
                     *actZoom[4];
     QActionGroup    *actionGroup;
     QPixmap         pixmap_;
-    QTimer          *tmrDrag_;
-    QTimer          *tmrUpdatePos_;
+    QPoint          lastPoint_;
+    QTimer          *tmrShowRatio_,
+                    *tmrUpdatePos_;
     QMenu           *trayMenu;
     QSystemTrayIcon *trayIcon;
-    bool            blockEvents_;
+    bool            dragging_,
+                    ratioChanged_;
     int             ratio_;
 
 signals:
