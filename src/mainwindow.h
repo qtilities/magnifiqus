@@ -17,6 +17,7 @@
 #include <QMainWindow>
 
 class QActionGroup;
+class QMenu;
 class QSystemTrayIcon;
 class MainWindow : public QMainWindow
 {

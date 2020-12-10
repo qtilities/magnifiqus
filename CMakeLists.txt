@@ -12,7 +12,7 @@ set (CMAKE_CXX_STANDARD 11)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(QT NAMES Qt6 Qt5)
-find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets REQUIRED)
+find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets X11Extras REQUIRED)
 
 set (RESOURCE_FILES resources/resources.qrc)
 set (SOURCE_FILES
@@ -26,7 +26,7 @@ add_executable(${PROJECT_NAME}
 )
 source_group ("Resource Files" FILES ${RESOURCE_FILES})
 target_include_directories(${PROJECT_NAME} PRIVATE "src")
-target_link_libraries(${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets)
+target_link_libraries(${PROJECT_NAME} PRIVATE Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::X11Extras X11)
 
 if (UNIX AND NOT APPLE)
     include (GNUInstallDirs)

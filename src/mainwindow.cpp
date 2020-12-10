@@ -29,6 +29,14 @@
 #include <QStandardPaths>
 #include <QSystemTrayIcon>
 #include <QTimer>
+#include <QX11Info>
+
+#include <X11/Xlib-xcb.h>
+#include <X11/Xatom.h>
+
+constexpr int MainWindow::ratio_min;
+constexpr int MainWindow::ratio_max;
+constexpr int MainWindow::size_min;
 
 static QScreen *findScreenAt(const QPoint &pos)
 {
@@ -98,7 +106,8 @@ MainWindow::MainWindow(QSystemTrayIcon *icon, QWidget *parent)
     connect(tmrShowRatio_, &QTimer::timeout, this, &MainWindow::notifyRatioComplete);
 
     setMouseTracking(true);
-    setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
+    setWindowFlag(Qt::Tool);
+    setWindowFlag(Qt::FramelessWindowHint);
     setWindowIcon(QIcon(":/appicon"));
     setWindowTitle("x" + QString::number(ratio_));
     loadSettings();
@@ -200,9 +209,22 @@ void MainWindow::paintEvent(QPaintEvent *)
 }
 void MainWindow::showEvent(QShowEvent *)
 {
+    // Needed for some WMs to avoid to display the window in the taskbar
+    // and task switcher and display it in all desktop (FIXME)
+    Display *display = QX11Info::display();
+    WId     window   = this->winId();
+    Atom    state    = XInternAtom(display, "_NET_WM_STATE", false);
+    Atom    sticky   = XInternAtom(display, "_NET_WM_STATE_STICKY", false);
+    Atom    skipPgr  = XInternAtom(display, "_NET_WM_STATE_SKIP_PAGER", false);
+    Atom    skipTbr  = XInternAtom(display, "_NET_WM_STATE_SKIP_TASKBAR", false);
+    XChangeProperty(display, window, state, XA_ATOM, 32, PropModeAppend, (unsigned char*) &sticky, 1L);
+    XChangeProperty(display, window, state, XA_ATOM, 32, PropModeAppend, (unsigned char*) &skipPgr, 1L);
+    XChangeProperty(display, window, state, XA_ATOM, 32, PropModeAppend, (unsigned char*) &skipTbr, 1L);
+
     updatePosition();
     tmrUpdatePos_->start();
 }
+
 void MainWindow::hideEvent(QHideEvent *)
 {
     tmrUpdatePos_->stop();
