@@ -172,7 +172,7 @@ void MainWindow::paintEvent(QPaintEvent *)
     {
         // Avoid to get a "mirror on mirror" effect
         // FIXME: crap is drawn when hovering near the desktop borders
-        QPixmap p = QIcon(":/appicon").pixmap(w, h);
+        const QPixmap &p = getWindowOverlayPixmap();
         painter.drawPixmap(0, 0, p);
     }
     else
@@ -378,4 +378,15 @@ void MainWindow::updatePosition()
 void MainWindow::notifyRatioComplete()
 {
     ratioChanged_= false;
+}
+const QPixmap &MainWindow::getWindowOverlayPixmap()
+{
+    int w           = width();
+    int h           = height();
+    QPixmap &pixmap = windowOverlayPixmap_;
+    if (pixmap.width() != w || pixmap.height() != h)
+    {
+        pixmap = QIcon(":/appicon").pixmap(w, h);
+    }
+    return pixmap;
 }

@@ -51,6 +51,8 @@ private:
     void updatePosition();
     void notifyRatioComplete();
 
+    const QPixmap &getWindowOverlayPixmap();
+
     static constexpr int ratio_min = 2;
     static constexpr int ratio_max = 5;
 
@@ -61,6 +63,7 @@ private:
                     *actZoom[4];
     QActionGroup    *actionGroup;
     QPixmap         pixmap_;
+    QPixmap         windowOverlayPixmap_;
     QPoint          lastPoint_;
     QTimer          *tmrShowRatio_,
                     *tmrUpdatePos_;
