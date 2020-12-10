@@ -31,7 +31,7 @@ int main(int argc, char *argv[])
     app.setApplicationDisplayName("Magnifiqus");
 
     QIcon icon = QIcon(":/trayicon");
-    QSystemTrayIcon* trayIcon = new QSystemTrayIcon(icon, &app);
+    QSystemTrayIcon* trayIcon = new QSystemTrayIcon(icon);
     trayIcon->setVisible(true);
 
     MainWindow w(trayIcon);

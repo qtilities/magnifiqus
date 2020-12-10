@@ -50,7 +50,7 @@ MainWindow::MainWindow(QSystemTrayIcon *icon, QWidget *parent)
     , tmrUpdatePos_(new QTimer(this))
     , trayMenu     (new QMenu(this))
     , trayIcon     (icon)
-    , dragging_    (false)
+    , dragType_    (DragNone)
     , ratioChanged_(false)
     , ratio_       (ratio_min)
 {
@@ -116,37 +116,33 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
-        lastPoint_= event->pos();
-        dragging_ = true;
+        QPoint pos = event->pos();
+        lastPoint_= pos;
+        dragType_ = isOverResizeCorner(pos) ? DragResize : DragMove;
     }
     QMainWindow::mousePressEvent(event);
 }
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
-    if ((event->buttons() & Qt::LeftButton) && dragging_)
-        dragging_= false;
+    if ((event->buttons() & Qt::LeftButton) && dragType_ != DragNone)
+        dragType_= DragNone;
 }
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
-    QPoint pos = QCursor::pos();
-    QPoint bottomRight = mapToGlobal(rect().bottomRight());
-    bool isOverBottomLeftCorner = pos.x() > bottomRight.x() - 20 &&
-                                  pos.y() > bottomRight.y() - 20;
-    if (isOverBottomLeftCorner)
+    QPoint pos = event->pos();
+
+    if (dragType_ == DragResize || isOverResizeCorner(pos))
         setCursor(Qt::SizeFDiagCursor);
     else
         setCursor(Qt::ArrowCursor);
 
-    if ((event->buttons() & Qt::LeftButton) && dragging_)
+    if ((event->buttons() & Qt::LeftButton) && dragType_ != DragNone)
     {
-        if (isOverBottomLeftCorner)
+        if (dragType_ == DragResize)
         {
-            // FIXME: the window jumps on other places when resizing below 0
-            // or in some shapes
-            int w = pos.x() - x();
-            int h = pos.y() - y();
-            if (w > 10 && h > 10)
-                resize(w, h);
+            int w = qMax(size_min, pos.x());
+            int h = qMax(size_min, pos.y());
+            resize(w, h);
         }
         else
         {
@@ -172,12 +168,14 @@ void MainWindow::paintEvent(QPaintEvent *)
     {
         // Avoid to get a "mirror on mirror" effect
         // FIXME: crap is drawn when hovering near the desktop borders
-        QPixmap p = QIcon(":/appicon").pixmap(w, h);
+        const QPixmap &p = getWindowOverlayPixmap();
         painter.drawPixmap(0, 0, p);
     }
     else
     {
-        painter.drawPixmap(0, 0, pixmap_.scaledToHeight(h * ratio_));
+        painter.scale(ratio_, ratio_);
+        painter.drawPixmap(0, 0, pixmap_);
+        painter.resetTransform();
     }
     // Draw the frame border
     QPen pen(QColor("#181818"));
@@ -204,6 +202,10 @@ void MainWindow::showEvent(QShowEvent *)
 {
     updatePosition();
     tmrUpdatePos_->start();
+}
+void MainWindow::hideEvent(QHideEvent *)
+{
+    tmrUpdatePos_->stop();
 }
 void MainWindow::wheelEvent(QWheelEvent *event)
 {
@@ -368,12 +370,41 @@ void MainWindow::updatePosition()
         return;
 
     WId wid = QApplication::desktop()->winId();
+    const int ratio = ratio_;
+
+    QPoint grabCenter = pos;
+    QRect grabLimits  = screen->geometry()
+        .adjusted(w / (2 * ratio), h / (2 * ratio), -w / (2 * ratio), - h / (2 * ratio));
+    grabCenter.setX(qMax(grabLimits.left(), qMin(grabLimits.right(), grabCenter.x())));
+    grabCenter.setY(qMax(grabLimits.top(), qMin(grabLimits.bottom(), grabCenter.y())));
+
+    QRect grabArea {
+        grabCenter.x() - w / (2 * ratio),
+        grabCenter.y() - h / (2 * ratio), w, h };
+
     pixmap_ = screen->grabWindow(wid,
-                                 pos.x() - w / ratio_ / 2,
-                                 pos.y() - h / ratio_ / 2, w, h);
+                                 grabArea.x(), grabArea.y(),
+                                 grabArea.width(), grabArea.height());
     update();
 }
 void MainWindow::notifyRatioComplete()
 {
     ratioChanged_= false;
+}
+const QPixmap &MainWindow::getWindowOverlayPixmap()
+{
+    int w           = width();
+    int h           = height();
+    QPixmap &pixmap = windowOverlayPixmap_;
+    if (pixmap.width() != w || pixmap.height() != h)
+    {
+        pixmap = QIcon(":/appicon").pixmap(w, h);
+    }
+    return pixmap;
+}
+bool MainWindow::isOverResizeCorner(QPoint pos) const
+{
+    QPoint bottomRight = rect().bottomRight();
+    return pos.x() > bottomRight.x() - 20 &&
+           pos.y() > bottomRight.y() - 20;
 }
