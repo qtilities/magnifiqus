@@ -52,9 +52,19 @@ private:
     void notifyRatioComplete();
 
     const QPixmap &getWindowOverlayPixmap();
+    bool isOverResizeCorner(QPoint pos) const;
 
     static constexpr int ratio_min = 2;
     static constexpr int ratio_max = 5;
+
+    static constexpr int size_min = 30;
+
+    enum DragType
+    {
+        DragNone,
+        DragMove,
+        DragResize,
+    };
 
     QAction         *actAbout,
                     *actAutoStart,
@@ -69,8 +79,8 @@ private:
                     *tmrUpdatePos_;
     QMenu           *trayMenu;
     QSystemTrayIcon *trayIcon;
-    bool            dragging_,
-                    ratioChanged_;
+    DragType        dragType_;
+    bool            ratioChanged_;
     int             ratio_;
 
 signals:

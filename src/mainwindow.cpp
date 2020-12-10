@@ -50,7 +50,7 @@ MainWindow::MainWindow(QSystemTrayIcon *icon, QWidget *parent)
     , tmrUpdatePos_(new QTimer(this))
     , trayMenu     (new QMenu(this))
     , trayIcon     (icon)
-    , dragging_    (false)
+    , dragType_    (DragNone)
     , ratioChanged_(false)
     , ratio_       (ratio_min)
 {
@@ -116,37 +116,33 @@ void MainWindow::closeEvent(QCloseEvent *event)
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::LeftButton) {
-        lastPoint_= event->pos();
-        dragging_ = true;
+        QPoint pos = event->pos();
+        lastPoint_= pos;
+        dragType_ = isOverResizeCorner(pos) ? DragResize : DragMove;
     }
     QMainWindow::mousePressEvent(event);
 }
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
-    if ((event->buttons() & Qt::LeftButton) && dragging_)
-        dragging_= false;
+    if ((event->buttons() & Qt::LeftButton) && dragType_ != DragNone)
+        dragType_= DragNone;
 }
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
     QPoint pos = event->pos();
-    QPoint bottomRight = rect().bottomRight();
-    bool isOverBottomRightCorner = pos.x() > bottomRight.x() - 20 &&
-                                   pos.y() > bottomRight.y() - 20;
-    if (isOverBottomRightCorner)
+
+    if (dragType_ == DragResize || isOverResizeCorner(pos))
         setCursor(Qt::SizeFDiagCursor);
     else
         setCursor(Qt::ArrowCursor);
 
-    if ((event->buttons() & Qt::LeftButton) && dragging_)
+    if ((event->buttons() & Qt::LeftButton) && dragType_ != DragNone)
     {
-        if (isOverBottomRightCorner)
+        if (dragType_ == DragResize)
         {
-            // FIXME: the window jumps on other places when resizing below 0
-            // or in some shapes
-            int w = pos.x();
-            int h = pos.y();
-            if (w > 10 && h > 10)
-                resize(w, h);
+            int w = qMax(size_min, pos.x());
+            int h = qMax(size_min, pos.y());
+            resize(w, h);
         }
         else
         {
@@ -401,4 +397,10 @@ const QPixmap &MainWindow::getWindowOverlayPixmap()
         pixmap = QIcon(":/appicon").pixmap(w, h);
     }
     return pixmap;
+}
+bool MainWindow::isOverResizeCorner(QPoint pos) const
+{
+    QPoint bottomRight = rect().bottomRight();
+    return pos.x() > bottomRight.x() - 20 &&
+           pos.y() > bottomRight.y() - 20;
 }
