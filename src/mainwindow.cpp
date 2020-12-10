@@ -51,6 +51,7 @@ MainWindow::MainWindow(QSystemTrayIcon *icon, QWidget *parent)
     , trayMenu     (new QMenu(this))
     , trayIcon     (icon)
     , dragging_    (false)
+    , resizing_    (false)
     , ratioChanged_(false)
     , ratio_       (ratio_min)
 {
@@ -108,23 +109,22 @@ MainWindow::~MainWindow()
 }
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    if (trayIcon->isVisible()) {
+    if (trayIcon->isVisible())
+    {
         hide();
         event->ignore();
     }
 }
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton) {
-        lastPoint_= event->pos();
-        dragging_ = true;
-    }
+    lastPoint_= event->pos();
     QMainWindow::mousePressEvent(event);
 }
 void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 {
-    if ((event->buttons() & Qt::LeftButton) && dragging_)
-        dragging_= false;
+    dragging_= false;
+    resizing_= false;
+    QMainWindow::mouseReleaseEvent(event);
 }
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
@@ -137,20 +137,23 @@ void MainWindow::mouseMoveEvent(QMouseEvent *event)
     else
         setCursor(Qt::ArrowCursor);
 
-    if ((event->buttons() & Qt::LeftButton) && dragging_)
+    if (event->buttons() & Qt::LeftButton)
     {
-        if (isOverBottomLeftCorner)
+        if (isOverBottomLeftCorner || resizing_)
         {
-            // FIXME: the window jumps on other places when resizing below 0
-            // or in some shapes
             int w = pos.x() - x();
             int h = pos.y() - y();
             if (w > 10 && h > 10)
-                resize(w, h);
+            {
+                resizing_= true;
+                resize (w, h);
+            }
         }
         else
         {
-            move(event->globalX() - lastPoint_.x(), event->globalY() - lastPoint_.y());
+            dragging_= true;
+            move (event->globalX() - lastPoint_.x(),
+                  event->globalY() - lastPoint_.y());
         }
         update();
     }
@@ -341,9 +344,9 @@ void MainWindow::createAutostartFile()
 }
 void MainWindow::deleteAutostartFile()
 {
-    QDir configDir(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation));
+    QDir    configDir(QStandardPaths::writableLocation(QStandardPaths::ConfigLocation));
     QString filePath(configDir.filePath("autostart/" + QApplication::applicationName() + ".desktop"));
-    QFile file(filePath);
+    QFile   file(filePath);
 
     if (!file.exists())
         return;
@@ -369,8 +372,8 @@ void MainWindow::updatePosition()
 
     WId wid = QApplication::desktop()->winId();
     pixmap_ = screen->grabWindow(wid,
-                                 pos.x() - w / ratio_ / 2,
-                                 pos.y() - h / ratio_ / 2, w, h);
+                                 pos.x() - w / ratio_/ 2,
+                                 pos.y() - h / ratio_/ 2, w, h);
     update();
 }
 void MainWindow::notifyRatioComplete()
