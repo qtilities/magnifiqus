@@ -370,9 +370,21 @@ void MainWindow::updatePosition()
         return;
 
     WId wid = QApplication::desktop()->winId();
+    const int ratio = ratio_;
+
+    QPoint grabCenter = pos;
+    QRect grabLimits  = screen->geometry()
+        .adjusted(w / (2 * ratio), h / (2 * ratio), -w / (2 * ratio), - h / (2 * ratio));
+    grabCenter.setX(qMax(grabLimits.left(), qMin(grabLimits.right(), grabCenter.x())));
+    grabCenter.setY(qMax(grabLimits.top(), qMin(grabLimits.bottom(), grabCenter.y())));
+
+    QRect grabArea {
+        grabCenter.x() - w / (2 * ratio),
+        grabCenter.y() - h / (2 * ratio), w, h };
+
     pixmap_ = screen->grabWindow(wid,
-                                 pos.x() - w / ratio_ / 2,
-                                 pos.y() - h / ratio_ / 2, w, h);
+                                 grabArea.x(), grabArea.y(),
+                                 grabArea.width(), grabArea.height());
     update();
 }
 void MainWindow::notifyRatioComplete()
