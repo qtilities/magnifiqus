@@ -67,7 +67,6 @@ private:
     QMenu           *trayMenu;
     QSystemTrayIcon *trayIcon;
     bool            dragging_,
-                    resizing_,
                     ratioChanged_;
     int             ratio_;
 
