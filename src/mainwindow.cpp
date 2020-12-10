@@ -128,23 +128,23 @@ void MainWindow::mouseReleaseEvent(QMouseEvent *event)
 }
 void MainWindow::mouseMoveEvent(QMouseEvent *event)
 {
-    QPoint pos = QCursor::pos();
-    QPoint bottomRight = mapToGlobal(rect().bottomRight());
-    bool isOverBottomLeftCorner = pos.x() > bottomRight.x() - 20 &&
-                                  pos.y() > bottomRight.y() - 20;
-    if (isOverBottomLeftCorner)
+    QPoint pos = event->pos();
+    QPoint bottomRight = rect().bottomRight();
+    bool isOverBottomRightCorner = pos.x() > bottomRight.x() - 20 &&
+                                   pos.y() > bottomRight.y() - 20;
+    if (isOverBottomRightCorner)
         setCursor(Qt::SizeFDiagCursor);
     else
         setCursor(Qt::ArrowCursor);
 
     if ((event->buttons() & Qt::LeftButton) && dragging_)
     {
-        if (isOverBottomLeftCorner)
+        if (isOverBottomRightCorner)
         {
             // FIXME: the window jumps on other places when resizing below 0
             // or in some shapes
-            int w = pos.x() - x();
-            int h = pos.y() - y();
+            int w = pos.x();
+            int h = pos.y();
             if (w > 10 && h > 10)
                 resize(w, h);
         }
