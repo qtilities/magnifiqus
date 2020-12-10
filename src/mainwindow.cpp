@@ -203,6 +203,10 @@ void MainWindow::showEvent(QShowEvent *)
     updatePosition();
     tmrUpdatePos_->start();
 }
+void MainWindow::hideEvent(QHideEvent *)
+{
+    tmrUpdatePos_->stop();
+}
 void MainWindow::wheelEvent(QWheelEvent *event)
 {
     QPoint degrees = event->angleDelta() / 8;

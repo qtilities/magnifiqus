@@ -33,6 +33,7 @@ private:
     void mouseMoveEvent(QMouseEvent *) override;
     void paintEvent(QPaintEvent *) override;
     void showEvent(QShowEvent *) override;
+    void hideEvent(QHideEvent *) override;
     void wheelEvent(QWheelEvent *) override;
     void onAboutToQuit();
 
