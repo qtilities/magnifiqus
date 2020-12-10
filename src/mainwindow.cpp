@@ -177,7 +177,9 @@ void MainWindow::paintEvent(QPaintEvent *)
     }
     else
     {
-        painter.drawPixmap(0, 0, pixmap_.scaledToHeight(h * ratio_));
+        painter.scale(ratio_, ratio_);
+        painter.drawPixmap(0, 0, pixmap_);
+        painter.resetTransform();
     }
     // Draw the frame border
     QPen pen(QColor("#181818"));
