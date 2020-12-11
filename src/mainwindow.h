@@ -23,6 +23,13 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
+    enum DragType
+    {
+        DragNone,
+        DragMove,
+        DragResize
+    };
+
 public:
     MainWindow(QSystemTrayIcon* icon, QWidget *parent = nullptr);
     ~MainWindow();
@@ -50,23 +57,18 @@ private:
     void deleteAutostartFile();
 
     void setRatio(int);
-    void updatePosition();
     void notifyRatioComplete();
+
+    void updateGrabFollowMouse();
+
+    void setX11NetWmState();
 
     const QPixmap &getWindowOverlayPixmap();
     bool isOverResizeCorner(QPoint pos) const;
 
     static constexpr int ratio_min = 2;
     static constexpr int ratio_max = 5;
-
-    static constexpr int size_min = 30;
-
-    enum DragType
-    {
-        DragNone,
-        DragMove,
-        DragResize,
-    };
+    static constexpr int size_min  = 30;
 
     QAction         *actAbout,
                     *actAutoStart,

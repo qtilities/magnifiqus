@@ -100,7 +100,7 @@ MainWindow::MainWindow(QSystemTrayIcon *icon, QWidget *parent)
             setVisible(!isVisible());
     });
     tmrUpdatePos_->setInterval(10);
-    connect(tmrUpdatePos_, &QTimer::timeout, this, &MainWindow::updatePosition);
+    connect(tmrUpdatePos_, &QTimer::timeout, this, &MainWindow::updateGrabFollowMouse);
 
     tmrShowRatio_->setInterval(1000);
     connect(tmrShowRatio_, &QTimer::timeout, this, &MainWindow::notifyRatioComplete);
@@ -117,17 +117,19 @@ MainWindow::~MainWindow()
 }
 void MainWindow::closeEvent(QCloseEvent *event)
 {
-    if (trayIcon->isVisible()) {
+    if (trayIcon->isVisible())
+    {
         hide();
         event->ignore();
     }
 }
 void MainWindow::mousePressEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::LeftButton) {
+    if (event->button() == Qt::LeftButton)
+    {
         QPoint pos = event->pos();
-        lastPoint_= pos;
-        dragType_ = isOverResizeCorner(pos) ? DragResize : DragMove;
+        lastPoint_ = pos;
+        dragType_  = isOverResizeCorner(pos) ? DragResize : DragMove;
     }
     QMainWindow::mousePressEvent(event);
 }
@@ -209,22 +211,11 @@ void MainWindow::paintEvent(QPaintEvent *)
 }
 void MainWindow::showEvent(QShowEvent *)
 {
-    // Needed for some WMs to avoid to display the window in the taskbar
-    // and task switcher and display it in all desktop (FIXME)
-    Display *display = QX11Info::display();
-    WId     window   = this->winId();
-    Atom    state    = XInternAtom(display, "_NET_WM_STATE", false);
-    Atom    sticky   = XInternAtom(display, "_NET_WM_STATE_STICKY", false);
-    Atom    skipPgr  = XInternAtom(display, "_NET_WM_STATE_SKIP_PAGER", false);
-    Atom    skipTbr  = XInternAtom(display, "_NET_WM_STATE_SKIP_TASKBAR", false);
-    XChangeProperty(display, window, state, XA_ATOM, 32, PropModeAppend, (unsigned char*) &sticky, 1L);
-    XChangeProperty(display, window, state, XA_ATOM, 32, PropModeAppend, (unsigned char*) &skipPgr, 1L);
-    XChangeProperty(display, window, state, XA_ATOM, 32, PropModeAppend, (unsigned char*) &skipTbr, 1L);
+    setX11NetWmState();
 
-    updatePosition();
+    updateGrabFollowMouse();
     tmrUpdatePos_->start();
 }
-
 void MainWindow::hideEvent(QHideEvent *)
 {
     tmrUpdatePos_->stop();
@@ -382,42 +373,59 @@ void MainWindow::setRatio(int value)
     ratio_= value;
     emit sigRatioChanged(value);
 }
-void MainWindow::updatePosition()
+void MainWindow::notifyRatioComplete()
+{
+    ratioChanged_= false;
+}
+void MainWindow::updateGrabFollowMouse()
 {
     QPoint   pos    = QCursor::pos();
-    int      w      = width();
-    int      h      = height();
     QScreen *screen = findScreenAt(pos);
     if (!screen)
         return;
 
-    WId wid = QApplication::desktop()->winId();
-    const int ratio = ratio_;
+    int       w          = width();
+    int       h          = height();
+    const int ratio      = ratio_;
+    WId       wid        = QApplication::desktop()->winId();
+    QPoint    grabCenter = pos;
+    QRect     grabLimits = screen->geometry()
+                            .adjusted (w / (2 * ratio),   h / (2 * ratio),
+                                     - w / (2 * ratio), - h / (2 * ratio));
 
-    QPoint grabCenter = pos;
-    QRect grabLimits  = screen->geometry()
-        .adjusted(w / (2 * ratio), h / (2 * ratio), -w / (2 * ratio), - h / (2 * ratio));
-    grabCenter.setX(qMax(grabLimits.left(), qMin(grabLimits.right(), grabCenter.x())));
-    grabCenter.setY(qMax(grabLimits.top(), qMin(grabLimits.bottom(), grabCenter.y())));
+    grabCenter.setX (qMax (grabLimits.left(), qMin(grabLimits.right(),  grabCenter.x())));
+    grabCenter.setY (qMax (grabLimits.top(),  qMin(grabLimits.bottom(), grabCenter.y())));
 
-    QRect grabArea {
+    QRect grabArea
+    {
         grabCenter.x() - w / (2 * ratio),
-        grabCenter.y() - h / (2 * ratio), w, h };
-
+        grabCenter.y() - h / (2 * ratio), w, h
+    };
     pixmap_ = screen->grabWindow(wid,
                                  grabArea.x(), grabArea.y(),
                                  grabArea.width(), grabArea.height());
     update();
 }
-void MainWindow::notifyRatioComplete()
+void MainWindow::setX11NetWmState()
 {
-    ratioChanged_= false;
+    // Needed for some WMs to avoid to display the window in the taskbar
+    // and task switcher and display it in all desktop (FIXME)
+    Display *display = QX11Info::display();
+    WId     window   = this->winId();
+    Atom    state    = XInternAtom(display, "_NET_WM_STATE", false);
+    Atom    sticky   = XInternAtom(display, "_NET_WM_STATE_STICKY", false);
+    Atom    skipPgr  = XInternAtom(display, "_NET_WM_STATE_SKIP_PAGER", false);
+    Atom    skipTbr  = XInternAtom(display, "_NET_WM_STATE_SKIP_TASKBAR", false);
+    XChangeProperty(display, window, state, XA_ATOM, 32, PropModeAppend, (unsigned char*) &sticky, 1L);
+    XChangeProperty(display, window, state, XA_ATOM, 32, PropModeAppend, (unsigned char*) &skipPgr, 1L);
+    XChangeProperty(display, window, state, XA_ATOM, 32, PropModeAppend, (unsigned char*) &skipTbr, 1L);
 }
 const QPixmap &MainWindow::getWindowOverlayPixmap()
 {
-    int w           = width();
-    int h           = height();
+    int     w       = width();
+    int     h       = height();
     QPixmap &pixmap = windowOverlayPixmap_;
+
     if (pixmap.width() != w || pixmap.height() != h)
     {
         pixmap = QIcon(":/appicon").pixmap(w, h);
