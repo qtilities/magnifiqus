@@ -109,7 +109,6 @@ MainWindow::MainWindow(QSystemTrayIcon *icon, QWidget *parent)
     setWindowFlag(Qt::Tool);
     setWindowFlag(Qt::FramelessWindowHint);
     setWindowIcon(QIcon(":/appicon"));
-    setWindowTitle("x" + QString::number(ratio_));
     loadSettings();
 }
 MainWindow::~MainWindow()
@@ -272,8 +271,6 @@ void MainWindow::onRatioSelected()
     blockSignals(true);
     setRatio(newValue);
     blockSignals(false);
-
-    setWindowTitle("x" + QString::number(newValue));
 }
 void MainWindow::onTopChecked(bool checked)
 {
@@ -314,8 +311,6 @@ void MainWindow::loadSettings()
     if      (ratio < ratio_min) ratio = ratio_min;
     else if (ratio > ratio_max) ratio = ratio_max;
     setRatio(ratio);
-
-    setWindowTitle("x" + QString::number(ratio));
     settings.endGroup();
 }
 void MainWindow::saveSettings()
