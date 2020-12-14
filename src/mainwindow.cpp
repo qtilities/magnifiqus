@@ -51,6 +51,7 @@ MainWindow::MainWindow(QSystemTrayIcon *icon, QWidget *parent)
     : QMainWindow(parent)
     , actAbout     (new QAction(QIcon::fromTheme("help-about"), tr("&About"), this))
     , actAutoStart (new QAction(tr("Auto&start"), this))
+    , actCursor    (new QAction(tr("Show &cursor"), this))
     , actQuit      (new QAction(QIcon::fromTheme("application-exit"), tr("&Quit"), this))
     , actTop       (new QAction(tr("Always on &Top"), this))
     , actionGroup  (new QActionGroup(this))
@@ -63,6 +64,7 @@ MainWindow::MainWindow(QSystemTrayIcon *icon, QWidget *parent)
     , ratio_       (ratio_min)
 {
     actAutoStart->setCheckable(true);
+    actCursor->setCheckable(true);
     actTop->setCheckable(true);
 
     for (int i = 0; i < 4; ++i)
@@ -79,6 +81,7 @@ MainWindow::MainWindow(QSystemTrayIcon *icon, QWidget *parent)
     trayMenu->addSeparator();
     trayMenu->addAction(actTop);
     trayMenu->addAction(actAutoStart);
+    trayMenu->addAction(actCursor);
     trayMenu->addSeparator();
     trayMenu->addAction(actAbout);
     trayMenu->addSeparator();
@@ -173,22 +176,36 @@ void MainWindow::paintEvent(QPaintEvent *)
                              topL.y() - vBound,
                              w + hBound * 2,
                              h + vBound * 2);
+    QColor   borderColor("#181818");
+    QPen     pen(borderColor);
     QPainter painter(this);
+
     if (boundRect.contains(QCursor::pos()))
     {
         // Avoid to get a "mirror on mirror" effect
-        // FIXME: crap is drawn when hovering near the desktop borders
         const QPixmap &p = getWindowOverlayPixmap();
         painter.drawPixmap(0, 0, p);
     }
     else
     {
+        // Draw the cached scaled pixmap
         painter.scale(ratio_, ratio_);
         painter.drawPixmap(0, 0, pixmap_);
         painter.resetTransform();
+
+        if (actCursor->isChecked())
+        {
+            // Draw pointer coords rect
+            QRect cursorRect(rect().x() + (w / 2),
+                             rect().y() + (h / 2), ratio_, ratio_);
+            pen.setWidth(1);
+            painter.setPen(Qt::white);
+            painter.setCompositionMode(QPainter::RasterOp_SourceXorDestination);
+            painter.drawRect(cursorRect);
+            painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
+        }
     }
     // Draw the frame border
-    QPen pen(QColor("#181818"));
     pen.setWidth(2);
     painter.setPen(pen);
     painter.drawRect(QRect(rect().x() + 1,
@@ -306,6 +323,7 @@ void MainWindow::loadSettings()
     setWindowFlags(flags);
 
     actAutoStart->setChecked(settings.value("AutoStart", false).toBool());
+    actCursor->setChecked(settings.value("ShowCursor", false).toBool());
 
     int ratio = settings.value("Zoom", 2).toUInt();
     if      (ratio < ratio_min) ratio = ratio_min;
@@ -326,10 +344,11 @@ void MainWindow::saveSettings()
             zoom = i + 2;
     }
     settings.beginGroup("Main");
-    settings.setValue("Position",    pos());
-    settings.setValue("Size",        size());
-    settings.setValue("AutoStart",   actAutoStart->isChecked());
     settings.setValue("AlwaysOnTop", actTop->isChecked());
+    settings.setValue("AutoStart",   actAutoStart->isChecked());
+    settings.setValue("Position",    pos());
+    settings.setValue("ShowCursor",  actCursor->isChecked());
+    settings.setValue("Size",        size());
     settings.setValue("Zoom",        zoom);
 }
 void MainWindow::createAutostartFile()

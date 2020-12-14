@@ -72,6 +72,7 @@ private:
 
     QAction         *actAbout,
                     *actAutoStart,
+                    *actCursor,
                     *actQuit,
                     *actTop,
                     *actZoom[4];
