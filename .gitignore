@@ -1,2 +1,4 @@
 *build*
 *.user*
+*.diff
+compile_commands.json
