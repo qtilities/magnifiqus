@@ -18,7 +18,7 @@
 #include <QApplication>
 #include <QSystemTrayIcon>
 
-int main(int argc, char *argv[])
+int main(int argc, char* argv[])
 {
     QCoreApplication::setAttribute(Qt::AA_UseHighDpiPixmaps);
 

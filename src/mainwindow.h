@@ -19,30 +19,28 @@
 class QActionGroup;
 class QMenu;
 class QSystemTrayIcon;
-class MainWindow : public QMainWindow
-{
+class MainWindow : public QMainWindow {
     Q_OBJECT
 
-    enum DragType
-    {
+    enum DragType {
         DragNone,
         DragMove,
         DragResize
     };
 
 public:
-    MainWindow(QSystemTrayIcon* icon, QWidget *parent = nullptr);
+    MainWindow(QSystemTrayIcon* icon, QWidget* parent = nullptr);
     ~MainWindow();
 
 private:
-    void closeEvent(QCloseEvent *) override;
-    void mousePressEvent(QMouseEvent *) override;
-    void mouseReleaseEvent(QMouseEvent *) override;
-    void mouseMoveEvent(QMouseEvent *) override;
-    void paintEvent(QPaintEvent *) override;
-    void showEvent(QShowEvent *) override;
-    void hideEvent(QHideEvent *) override;
-    void wheelEvent(QWheelEvent *) override;
+    void closeEvent(QCloseEvent*) override;
+    void mousePressEvent(QMouseEvent*) override;
+    void mouseReleaseEvent(QMouseEvent*) override;
+    void mouseMoveEvent(QMouseEvent*) override;
+    void paintEvent(QPaintEvent*) override;
+    void showEvent(QShowEvent*) override;
+    void hideEvent(QHideEvent*) override;
+    void wheelEvent(QWheelEvent*) override;
     void onAboutToQuit();
 
     void onAboutClicked();
@@ -63,30 +61,30 @@ private:
 
     void setX11NetWmState();
 
-    const QPixmap &getWindowOverlayPixmap();
+    const QPixmap& getWindowOverlayPixmap();
     bool isOverResizeCorner(QPoint pos) const;
 
     static constexpr int ratio_min = 2;
     static constexpr int ratio_max = 5;
-    static constexpr int size_min  = 30;
+    static constexpr int size_min = 30;
 
-    QAction         *actAbout,
-                    *actAutoStart,
-                    *actCursor,
-                    *actQuit,
-                    *actTop,
-                    *actZoom[4];
-    QActionGroup    *actionGroup;
-    QPixmap         pixmap_;
-    QPixmap         windowOverlayPixmap_;
-    QPoint          lastPoint_;
-    QTimer          *tmrShowRatio_,
-                    *tmrUpdatePos_;
-    QMenu           *trayMenu;
-    QSystemTrayIcon *trayIcon;
-    DragType        dragType_;
-    bool            ratioChanged_;
-    int             ratio_;
+    QAction *actAbout,
+        *actAutoStart,
+        *actCursor,
+        *actQuit,
+        *actTop,
+        *actZoom[4];
+    QActionGroup* actionGroup;
+    QPixmap pixmap_;
+    QPixmap windowOverlayPixmap_;
+    QPoint lastPoint_;
+    QTimer *tmrShowRatio_,
+        *tmrUpdatePos_;
+    QMenu* trayMenu;
+    QSystemTrayIcon* trayIcon;
+    DragType dragType_;
+    bool ratioChanged_;
+    int ratio_;
 
 signals:
     void sigRatioChanged(int);
