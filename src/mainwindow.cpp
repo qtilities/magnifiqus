@@ -114,13 +114,6 @@ MainWindow::MainWindow(QSystemTrayIcon* icon, QWidget* parent)
 MainWindow::~MainWindow()
 {
 }
-void MainWindow::closeEvent(QCloseEvent* event)
-{
-    if (trayIcon->isVisible()) {
-        hide();
-        event->ignore();
-    }
-}
 void MainWindow::mousePressEvent(QMouseEvent* event)
 {
     if (event->button() == Qt::LeftButton) {

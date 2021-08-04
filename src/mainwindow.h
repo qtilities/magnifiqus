@@ -33,7 +33,6 @@ public:
     ~MainWindow();
 
 private:
-    void closeEvent(QCloseEvent*) override;
     void mousePressEvent(QMouseEvent*) override;
     void mouseReleaseEvent(QMouseEvent*) override;
     void mouseMoveEvent(QMouseEvent*) override;
@@ -41,9 +40,9 @@ private:
     void showEvent(QShowEvent*) override;
     void hideEvent(QHideEvent*) override;
     void wheelEvent(QWheelEvent*) override;
-    void onAboutToQuit();
 
     void onAboutClicked();
+    void onAboutToQuit();
     void onRatioChanged(int);
     void onRatioSelected();
     void onTopChecked(bool);
