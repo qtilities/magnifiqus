@@ -16,6 +16,9 @@ find_package(Qt${QT_VERSION_MAJOR} COMPONENTS Widgets X11Extras REQUIRED)
 
 set (RESOURCE_FILES resources/resources.qrc)
 set (SOURCE_FILES
+    src/dialogprefs.hpp
+    src/dialogprefs.cpp
+    src/dialogprefs.ui
     src/mainwindow.h
     src/mainwindow.cpp
     src/main.cpp

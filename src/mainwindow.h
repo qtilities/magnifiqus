@@ -17,6 +17,7 @@
 #include <QMainWindow>
 
 class QActionGroup;
+class DialogPrefs;
 class QMenu;
 class QSystemTrayIcon;
 class MainWindow : public QMainWindow {
@@ -43,6 +44,9 @@ private:
 
     void onAboutClicked();
     void onAboutToQuit();
+    void onCursorFilledChanged(bool);
+    void onPreferencesChanged();
+    void onPrefsClicked();
     void onRatioChanged(int);
     void onRatioSelected();
     void onTopChecked(bool);
@@ -70,6 +74,7 @@ private:
     QAction *actAbout,
         *actAutoStart,
         *actCursor,
+        *actPrefs,
         *actQuit,
         *actTop,
         *actZoom[4];
@@ -81,9 +86,12 @@ private:
         *tmrUpdatePos_;
     QMenu* trayMenu;
     QSystemTrayIcon* trayIcon;
+    DialogPrefs* dlgPrefs;
     DragType dragType_;
     bool ratioChanged_;
+    bool cursorFilled_;
     int ratio_;
+    int cursorSize_;
 
 signals:
     void sigRatioChanged(int);

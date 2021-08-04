@@ -14,6 +14,7 @@
     For a full copy of the GNU General Public License see the LICENSE file
 */
 #include "mainwindow.h"
+#include "dialogprefs.hpp"
 
 #include <QApplication>
 #include <QDebug>
@@ -51,6 +52,7 @@ MainWindow::MainWindow(QSystemTrayIcon* icon, QWidget* parent)
     , actAbout(new QAction(QIcon::fromTheme("help-about"), tr("&About"), this))
     , actAutoStart(new QAction(tr("Auto&start"), this))
     , actCursor(new QAction(tr("Show &cursor"), this))
+    , actPrefs(new QAction(QIcon::fromTheme("preferences-system"), tr("&Preferences"), this))
     , actQuit(new QAction(QIcon::fromTheme("application-exit"), tr("&Quit"), this))
     , actTop(new QAction(tr("Always on &Top"), this))
     , actionGroup(new QActionGroup(this))
@@ -58,8 +60,10 @@ MainWindow::MainWindow(QSystemTrayIcon* icon, QWidget* parent)
     , tmrUpdatePos_(new QTimer(this))
     , trayMenu(new QMenu(this))
     , trayIcon(icon)
+    , dlgPrefs(new DialogPrefs(this))
     , dragType_(DragNone)
     , ratioChanged_(false)
+    , cursorFilled_(false)
     , ratio_(ratio_min)
 {
     actAutoStart->setCheckable(true);
@@ -83,16 +87,21 @@ MainWindow::MainWindow(QSystemTrayIcon* icon, QWidget* parent)
     trayMenu->addSeparator();
     trayMenu->addAction(actAbout);
     trayMenu->addSeparator();
+    trayMenu->addAction(actPrefs);
+    trayMenu->addSeparator();
     trayMenu->addAction(actQuit);
 
     trayIcon->setContextMenu(trayMenu);
     trayIcon->show();
 
     connect(qApp, &QCoreApplication::aboutToQuit, this, &MainWindow::onAboutToQuit);
+    connect(qApp, &QCoreApplication::aboutToQuit, dlgPrefs, &QObject::deleteLater);
     connect(this, &MainWindow::sigRatioChanged, this, &MainWindow::onRatioChanged);
     connect(actAbout, &QAction::triggered, this, &MainWindow::onAboutClicked);
+    connect(actPrefs, &QAction::triggered, this, &MainWindow::onPrefsClicked);
     connect(actTop, &QAction::triggered, this, &MainWindow::onTopChecked);
     connect(actQuit, &QAction::triggered, qApp, &QCoreApplication::quit);
+    connect(dlgPrefs, &DialogPrefs::sigPrefsChanged, this, &MainWindow::onPreferencesChanged);
 
     connect(trayIcon, &QSystemTrayIcon::activated,
             [=](QSystemTrayIcon::ActivationReason reason) {
@@ -176,12 +185,18 @@ void MainWindow::paintEvent(QPaintEvent*)
 
         if (actCursor->isChecked()) {
             // Draw pointer coords rect
-            QRect cursorRect(rect().x() + (w / 2),
-                             rect().y() + (h / 2), ratio_, ratio_);
+            float cursorSize = ratio_ * cursorSize_;
+            QRectF cursorRect(rect().x() + (w / 2) - cursorSize / 2,
+                              rect().y() + (h / 2) - cursorSize / 2,
+                              ratio_ * cursorSize_, ratio_ * cursorSize_);
             pen.setWidth(1);
             painter.setPen(Qt::white);
             painter.setCompositionMode(QPainter::RasterOp_SourceXorDestination);
             painter.drawRect(cursorRect);
+
+            if (cursorFilled_)
+                painter.fillRect(cursorRect, Qt::white);
+
             painter.setCompositionMode(QPainter::CompositionMode_SourceOver);
         }
     }
@@ -228,6 +243,23 @@ void MainWindow::onAboutToQuit()
 {
     actAutoStart->isChecked() ? createAutostartFile() : deleteAutostartFile();
     saveSettings();
+}
+void MainWindow::onPreferencesChanged()
+{
+    QSettings settings(QSettings::IniFormat, QSettings::UserScope,
+                       QApplication::organizationName(),
+                       QApplication::applicationDisplayName());
+
+    settings.beginGroup("Main");
+    cursorFilled_ = settings.value("CursorFilled").toBool();
+    cursorSize_ = settings.value("CursorSize").toUInt();
+    settings.endGroup();
+}
+
+void MainWindow::onPrefsClicked()
+{
+    if (dlgPrefs->isHidden())
+        dlgPrefs->show();
 }
 void MainWindow::onAboutClicked()
 {
@@ -305,6 +337,12 @@ void MainWindow::loadSettings()
     else if (ratio > ratio_max)
         ratio = ratio_max;
     setRatio(ratio);
+
+    cursorSize_ = settings.value("CursorSize", 1).toUInt();
+    if (cursorSize_ < 1 || cursorSize_ > 100)
+        cursorSize_ = 1;
+
+    cursorFilled_ = settings.value("CursorFilled", false).toBool();
     settings.endGroup();
 }
 void MainWindow::saveSettings()
