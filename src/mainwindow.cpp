@@ -1,5 +1,5 @@
 /*
-    Copyright (C) 2020 Andrea Zanellato <redtid3@gmail.com>
+    Copyright (C) 2020-2021 Andrea Zanellato <redtid3@gmail.com>
 
     This program is free software; you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
