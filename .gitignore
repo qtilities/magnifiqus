@@ -1,4 +1,5 @@
-*build*
+*build*/
+*.qt_for_python/
 *.user*
 *.diff
 compile_commands.json
