@@ -8,5 +8,5 @@ insert_final_newline = 1
 trim_trailing_whitespace = 1
 charset = UTF-8
 
-[*.{html}]
+[*.{html,yml}]
 indent_size = 2
