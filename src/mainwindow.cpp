@@ -265,7 +265,7 @@ void MainWindow::onAboutClicked()
 {
     QFile f(":/about.html");
     if (!f.open(QFile::ReadOnly | QFile::Text)) {
-        qDebug() << tr("Error loading about file") << Qt::endl;
+        qDebug() << tr("Error loading about file") << '\n';
         return;
     }
     QTextStream in(&f);
