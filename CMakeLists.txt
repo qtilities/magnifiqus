@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.15)
-project(Magnifiqus VERSION 0.1.1 LANGUAGES CXX)
+project(Magnifiqus VERSION 0.3.0 LANGUAGES CXX)
 
 set(PROJECT_QT_VERSION Qt5 CACHE STRING "Qt version to use: Qt5 (default) or Qt6")
 
