@@ -28,8 +28,8 @@ jobs:
         - { name: "GCC", cc: gcc, cxx: g++ }
         - { name: "clang", cc: clang, cxx: clang++ }
     env:
-      cc:           ${{ matrix.config.cc }}
-      cxx:          ${{ matrix.config.cxx }}
+      cc:  ${{ matrix.config.cc }}
+      cxx: ${{ matrix.config.cxx }}
     steps:
     - name: Set Archive Name
       if: ${{ matrix.config.cc == 'gcc' }}
@@ -48,6 +48,7 @@ jobs:
         packages=(
           qtbase5-dev
           qttools5-dev
+          libqt5svg5-dev
         )
         sudo apt-get install ${packages[@]}
 
