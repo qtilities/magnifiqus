@@ -42,7 +42,16 @@ Qtilities::SystemTrayIcon::SystemTrayIcon(QObject *parent)
     init();
 }
 
-void Qtilities::SystemTrayIcon::setIcon(const QIcon &icon) { trayIcon_->setIcon(icon); }
+void Qtilities::SystemTrayIcon::setIcon(const QIcon &icon)
+{
+#if QT_VERSION < 0x060000
+    // Qt5 Workaround to display the SVG icon, see https://bugreports.qt.io/browse/QTBUG-53550
+    QIcon qt5icon = QIcon(icon.pixmap(32));
+    trayIcon_->setIcon(qt5icon);
+#else
+    trayIcon_->setIcon(icon);
+#endif
+}
 
 void Qtilities::SystemTrayIcon::setWidget(QWidget *widget)
 {
