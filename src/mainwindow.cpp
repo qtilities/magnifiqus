@@ -203,7 +203,6 @@ void Qtilities::MainWindow::loadSettings()
         flags &= ~Qt::WindowStaysOnTopHint;
 
     setWindowFlags(flags);
-    show();
 }
 
 void Qtilities::MainWindow::saveSettings()

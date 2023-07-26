@@ -42,7 +42,7 @@ Qtilities::Application::Application(int argc, char *argv[])
 
 void Qtilities::Application::initLocale()
 {
-#if 0
+#if 1
     QLocale locale = QLocale::system();
 #else
     QLocale locale(QLocale("it"));
@@ -100,7 +100,7 @@ void Qtilities::Application::initUi()
     mainWindow_->resize(settings_.size());
     mainWindow_->setWindowIcon(appIcon_);
     mainWindow_->setWindowTitle(applicationDisplayName());
-    mainWindow_->show(); // FIXME: Qt5 crash without this
+    mainWindow_->show(); // FIXME: crash without this
     mainWindow_->hide();
 
     trayIcon_->setIcon(appIcon_);
