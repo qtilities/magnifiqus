@@ -1,3 +1,0 @@
-[submodule "external/lxqt-build-tools"]
-	path = external/lxqt-build-tools
-	url = https://github.com/qtilities/lxqt-build-tools.git

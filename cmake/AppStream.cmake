@@ -1,10 +1,10 @@
-#===============================================================================
+#=======================================================================================================
 # Converts a domain string to a compatible AppStream ID
 #
 # E.G.: org.7-zip.7zip become org._7_zip._7zip
 #
 # See https://freedesktop.org/software/appstream/docs/chap-Metadata.html#tag-id-generic
-#===============================================================================
+#=======================================================================================================
 macro(to_appstream_id INPUT OUTPUT)
     set(temp_ "${INPUT}")
     string(REPLACE "-" "_" temp_ ${temp_})

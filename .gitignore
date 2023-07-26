@@ -1,5 +1,4 @@
 /*build*
-!lxqt-build-tools/
 *.bak
 *.diff
 *.patch
