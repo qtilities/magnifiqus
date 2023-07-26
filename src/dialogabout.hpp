@@ -27,23 +27,17 @@
 
 namespace Qtilities {
 namespace Ui {
-class DialogPrefs;
+class DialogAbout;
 }
-class LiteButton;
-class DialogPrefs : public QDialog
+class DialogAbout : public QDialog
 {
     Q_OBJECT
 
 public:
-    explicit DialogPrefs(QWidget *parent = nullptr);
-    ~DialogPrefs();
-
-    void loadSettings();
+    explicit DialogAbout(QWidget *parent = nullptr);
+    ~DialogAbout();
 
 private:
-    void accept() override;
-    void setButtonColor(LiteButton *);
-
-    Ui::DialogPrefs *ui;
+    Ui::DialogAbout *ui;
 };
 } // namespace Qtilities

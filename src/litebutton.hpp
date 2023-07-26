@@ -1,7 +1,7 @@
 /*
     MIT License
 
-    Copyright (c) 2021-2023 Andrea Zanellato <redtid3@gmail.com>
+    Copyright (c) 2023 Andrea Zanellato <redtid3@gmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to
@@ -23,27 +23,22 @@
 */
 #pragma once
 
-#include <QDialog>
+#include <QLabel>
 
 namespace Qtilities {
-namespace Ui {
-class DialogPrefs;
-}
-class LiteButton;
-class DialogPrefs : public QDialog
+
+class LiteButton : public QLabel
 {
     Q_OBJECT
 
 public:
-    explicit DialogPrefs(QWidget *parent = nullptr);
-    ~DialogPrefs();
+    explicit LiteButton(QWidget *parent = nullptr);
 
-    void loadSettings();
+signals:
+    void clicked();
 
-private:
-    void accept() override;
-    void setButtonColor(LiteButton *);
-
-    Ui::DialogPrefs *ui;
+protected:
+    void keyPressEvent(QKeyEvent *) override;
+    void mousePressEvent(QMouseEvent *) override;
 };
 } // namespace Qtilities

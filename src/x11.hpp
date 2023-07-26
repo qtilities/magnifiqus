@@ -1,7 +1,7 @@
 /*
     MIT License
 
-    Copyright (c) 2021-2023 Andrea Zanellato <redtid3@gmail.com>
+    Copyright (c) 2023 Andrea Zanellato <redtid3@gmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to
@@ -23,27 +23,22 @@
 */
 #pragma once
 
-#include <QDialog>
+#include <X11/Xlib.h>
+#include <cstdlib>
 
-namespace Qtilities {
-namespace Ui {
-class DialogPrefs;
-}
-class LiteButton;
-class DialogPrefs : public QDialog
+class QWidget;
+
+namespace x11 {
+Window desktop();
+Window rootWindow();
+Display *display();
+void dontShowInTaskbar(QWidget *);
+} // namespace x11
+
+static bool isWayland()
 {
-    Q_OBJECT
+    if (std::getenv("WAYLAND_DISPLAY"))
+        return true;
 
-public:
-    explicit DialogPrefs(QWidget *parent = nullptr);
-    ~DialogPrefs();
-
-    void loadSettings();
-
-private:
-    void accept() override;
-    void setButtonColor(LiteButton *);
-
-    Ui::DialogPrefs *ui;
-};
-} // namespace Qtilities
+    return false;
+}

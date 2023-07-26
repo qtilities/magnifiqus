@@ -1,5 +1,11 @@
-*build*/
-*.qt_for_python/
-*.user*
+/*build*
+!lxqt-build-tools/
+*.bak
 *.diff
+*.patch
+*.json
+*.qm
+*.user*
+resources/about.md
 compile_commands.json
+PrintAllVariables.cmake

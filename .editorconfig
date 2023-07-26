@@ -1,12 +1,11 @@
 root = true
 
 [*]
-indent_size = 4
-tab_width = 4
-indent_style = space
-insert_final_newline = 1
-trim_trailing_whitespace = 1
 charset = UTF-8
+insert_final_newline = 1
+indent_size = 4
+indent_style = space
+trim_trailing_whitespace = 1
 
-[*.{html,yml}]
+[*.{html,json,yml,sh}]
 indent_size = 2

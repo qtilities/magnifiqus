@@ -1,7 +1,7 @@
 /*
     MIT License
 
-    Copyright (c) 2021-2023 Andrea Zanellato <redtid3@gmail.com>
+    Copyright (c) 2023 Andrea Zanellato <redtid3@gmail.com>
 
     Permission is hereby granted, free of charge, to any person obtaining a copy
     of this software and associated documentation files (the "Software"), to
@@ -21,29 +21,21 @@
     FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
     IN THE SOFTWARE.
 */
-#pragma once
+#include "litebutton.hpp"
 
-#include <QDialog>
+#include <QKeyEvent>
 
-namespace Qtilities {
-namespace Ui {
-class DialogPrefs;
-}
-class LiteButton;
-class DialogPrefs : public QDialog
+Qtilities::LiteButton::LiteButton(QWidget *parent)
+    : QLabel(parent)
 {
-    Q_OBJECT
+}
 
-public:
-    explicit DialogPrefs(QWidget *parent = nullptr);
-    ~DialogPrefs();
+void Qtilities::LiteButton::keyPressEvent(QKeyEvent *event)
+{
+    if (event->key() == Qt::Key_Space)
+        emit clicked();
 
-    void loadSettings();
+    QLabel::keyPressEvent(event);
+}
 
-private:
-    void accept() override;
-    void setButtonColor(LiteButton *);
-
-    Ui::DialogPrefs *ui;
-};
-} // namespace Qtilities
+void Qtilities::LiteButton::mousePressEvent(QMouseEvent *) { emit clicked(); }
