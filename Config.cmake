@@ -7,7 +7,7 @@
 string(TOLOWER ${PROJECT_NAME} PROJECT_ID)   # Might not be compatible with AppStream
 list(APPEND PROJECT_CATEGORIES "Qt;KDE;Graphics;Utility") # Freedesktop menu categories
 list(APPEND PROJECT_KEYWORDS   "screen;magnifier")
-set(PROJECT_AUTHOR_NAME        "redtide")
+set(PROJECT_AUTHOR_NAME        "Andrea Zanellato")
 set(PROJECT_AUTHOR_EMAIL       "redtid3@gmail.com") # Used also for organization email
 set(PROJECT_COPYRIGHT_YEAR     "2021-2023")  # TODO: from git
 set(PROJECT_DESCRIPTION        "Screen magnifier")
