@@ -72,32 +72,32 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/dialogprefs.ui" line="140"/>
+        <location filename="../../src/dialogprefs.ui" line="113"/>
         <source>Cursor</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/dialogprefs.ui" line="170"/>
+        <location filename="../../src/dialogprefs.ui" line="143"/>
         <source>Size:</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/dialogprefs.ui" line="190"/>
+        <location filename="../../src/dialogprefs.ui" line="163"/>
         <source>px</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/dialogprefs.ui" line="203"/>
+        <location filename="../../src/dialogprefs.ui" line="176"/>
         <source>Show</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/dialogprefs.ui" line="177"/>
+        <location filename="../../src/dialogprefs.ui" line="150"/>
         <source>Filled</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/dialogprefs.cpp" line="43"/>
+        <location filename="../../src/dialogprefs.cpp" line="41"/>
         <source>Preferences</source>
         <translation type="unfinished"></translation>
     </message>
@@ -105,17 +105,17 @@
 <context>
     <name>Qtilities::SystemTrayIcon</name>
     <message>
-        <location filename="../../src/systemtrayicon.cpp" line="63"/>
+        <location filename="../../src/systemtrayicon.cpp" line="72"/>
         <source>&amp;About</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/systemtrayicon.cpp" line="65"/>
+        <location filename="../../src/systemtrayicon.cpp" line="74"/>
         <source>&amp;Preferences</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../../src/systemtrayicon.cpp" line="67"/>
+        <location filename="../../src/systemtrayicon.cpp" line="76"/>
         <source>&amp;Quit</source>
         <translation type="unfinished"></translation>
     </message>
