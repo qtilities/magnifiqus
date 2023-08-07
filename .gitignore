@@ -1,10 +1,4 @@
-/*build*
-*.bak
-*.diff
-*.patch
-*.json
-*.qm
-*.user*
-resources/about.md
+build*/
+*.user
 compile_commands.json
-PrintAllVariables.cmake
+resources/about.md

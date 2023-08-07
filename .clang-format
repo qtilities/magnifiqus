@@ -1,6 +1,7 @@
 ---
 AccessModifierOffset: -4
 AlignAfterOpenBracket: Align
+AlignEscapedNewlines: DontAlign
 AlignTrailingComments: true
 BreakBeforeBinaryOperators: All
 BreakBeforeBraces: Custom
