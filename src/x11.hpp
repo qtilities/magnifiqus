@@ -24,7 +24,11 @@
 #pragma once
 
 #include <X11/Xlib.h>
-#include <cstdlib>
+
+#include <QRect>
+#include <QtGui/qwindowdefs.h> // WId
+
+#include <cstdlib> // std::getenv
 
 class QWidget;
 
@@ -32,6 +36,16 @@ namespace x11 {
 Window desktop();
 Window rootWindow();
 Display *display();
+
+/// Returns the active window decoration rect
+QRect windowFrame(WId);
+
+/// Returns the active window' WId
+WId activeWindowId();
+/**
+    Needed for some WMs (e.g.: Openbox) to avoid to display the window in the taskbar,
+    task switcher and in all desktops
+*/
 void dontShowInTaskbar(QWidget *);
 } // namespace x11
 

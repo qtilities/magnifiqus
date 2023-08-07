@@ -35,8 +35,6 @@ Qtilities::DialogPrefs::DialogPrefs(QWidget *parent)
     , ui(new Qtilities::Ui::DialogPrefs)
 {
     ui->setupUi(this);
-    ui->lbnBgColor->setAutoFillBackground(true);
-    ui->lbnBdColor->setAutoFillBackground(true);
 
     loadSettings();
     setWindowIcon(QIcon::fromTheme("preferences-system", QIcon(":/preferences-system")));

@@ -28,6 +28,10 @@
 Qtilities::LiteButton::LiteButton(QWidget *parent)
     : QLabel(parent)
 {
+    setAutoFillBackground(true);
+    setFocusPolicy(Qt::StrongFocus);
+    setFrameShadow(QFrame::Raised);
+    setFrameShape(QFrame::StyledPanel);
 }
 
 void Qtilities::LiteButton::keyPressEvent(QKeyEvent *event)

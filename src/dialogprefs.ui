@@ -89,21 +89,6 @@
       </item>
       <item row="2" column="1" colspan="2">
        <widget class="Qtilities::LiteButton" name="lbnBgColor">
-        <property name="mouseTracking">
-         <bool>true</bool>
-        </property>
-        <property name="focusPolicy">
-         <enum>Qt::StrongFocus</enum>
-        </property>
-        <property name="autoFillBackground">
-         <bool>true</bool>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
-        </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>
         </property>
@@ -111,20 +96,8 @@
       </item>
       <item row="3" column="1" colspan="2">
        <widget class="Qtilities::LiteButton" name="lbnBdColor">
-        <property name="mouseTracking">
-         <bool>true</bool>
-        </property>
-        <property name="focusPolicy">
-         <enum>Qt::StrongFocus</enum>
-        </property>
         <property name="autoFillBackground">
          <bool>true</bool>
-        </property>
-        <property name="frameShape">
-         <enum>QFrame::StyledPanel</enum>
-        </property>
-        <property name="frameShadow">
-         <enum>QFrame::Raised</enum>
         </property>
         <property name="alignment">
          <set>Qt::AlignCenter</set>

@@ -29,10 +29,10 @@ Qtilities::Application::Application(int argc, char *argv[])
     : QApplication(argc, argv)
     , trayIcon_(new SystemTrayIcon(this))
 {
-    setApplicationName(PROJECT_ID);
-    setApplicationDisplayName(APPLICATION_NAME);
     setOrganizationName(ORGANIZATION_NAME);
     setOrganizationDomain(ORGANIZATION_DOMAIN);
+    setApplicationName(APPLICATION_NAME);
+    setApplicationDisplayName(APPLICATION_DISPLAY_NAME);
 
     setQuitOnLastWindowClosed(false);
 
@@ -48,24 +48,20 @@ void Qtilities::Application::initLocale()
     QLocale locale(QLocale("it"));
     QLocale::setDefault(locale);
 #endif
-    // Qt translations (buttons and the like)
-    QString translationsPath
+    // install the translations built into Qt itself
+    if (qtTranslator_.load(QStringLiteral("qt_") + locale.name(),
 #if QT_VERSION < 0x060000
-        = QLibraryInfo::location(QLibraryInfo::TranslationsPath);
+                           QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
 #else
-        = QLibraryInfo::path(QLibraryInfo::TranslationsPath);
+                           QLibraryInfo::path(QLibraryInfo::TranslationsPath)))
 #endif
-    QString translationsFileName = QStringLiteral("qt_") + locale.name();
-
-    if (qtTranslator_.load(translationsFileName, translationsPath))
         installTranslator(&qtTranslator_);
 
     // E.g. "<appname>_en"
-    translationsFileName = QCoreApplication::applicationName().toLower() + '_' + locale.name();
-
+    QString translationsFileName = QCoreApplication::applicationName().toLower() + '_' + locale.name();
     // Try first in the same binary directory, in case we are building,
     // otherwise read from system data
-    translationsPath = QCoreApplication::applicationDirPath();
+    QString translationsPath = QCoreApplication::applicationDirPath();
 
     bool isLoaded = translator_.load(translationsFileName, translationsPath);
     if (!isLoaded) {
@@ -83,19 +79,18 @@ void Qtilities::Application::initUi()
 #if QT_VERSION < 0x060000
     setAttribute(Qt::AA_UseHighDpiPixmaps, true);
 #endif
-    QString icoCurPath
+    QString icoLocalPath
         = QCoreApplication::applicationDirPath() + '/' + QStringLiteral(PROJECT_ICON_NAME);
     QString icoSysPath = QStringLiteral(PROJECT_ICON_SYSTEM_PATH);
 
-    // Try first to find the app icon in the current directory
-    appIcon_ = QIcon(icoCurPath);
+    // Try first to find the app icon in the current/build directory
+    appIcon_ = QIcon(icoLocalPath);
     if (appIcon_.isNull())
         appIcon_ = QIcon(icoSysPath);
 
     settings_.load();
 
     mainWindow_ = new Qtilities::MainWindow;
-    mainWindow_->loadSettings();
     mainWindow_->move(settings_.position());
     mainWindow_->resize(settings_.size());
     mainWindow_->setWindowIcon(appIcon_);

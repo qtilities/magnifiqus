@@ -215,7 +215,7 @@ void Qtilities::MainWindow::saveSettings()
 void Qtilities::MainWindow::updateGrabFollowMouse()
 {
     QPoint pos = QCursor::pos();
-    QScreen *screen = findScreenAt(pos);
+    QScreen *screen = screenAt(pos);
 
     if (!screen)
         return;

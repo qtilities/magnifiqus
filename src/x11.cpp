@@ -47,6 +47,17 @@ Window x11::desktop()
 #endif
 }
 
+Display *x11::display()
+{
+#if QT_VERSION < 0x060000
+    return QX11Info::display();
+#else
+    QNativeInterface::QX11Application *x11App
+        = qApp->nativeInterface<QNativeInterface::QX11Application>();
+    return x11App->display();
+#endif
+}
+
 Window x11::rootWindow()
 {
 #if QT_VERSION < 0x060000
@@ -62,21 +73,60 @@ Window x11::rootWindow()
 #endif
 }
 
-Display *x11::display()
+WId x11::activeWindowId()
 {
-#if QT_VERSION < 0x060000
-    return QX11Info::display();
-#else
-    QNativeInterface::QX11Application *x11App
-        = qApp->nativeInterface<QNativeInterface::QX11Application>();
-    return x11App->display();
+    WId root = WId(x11::rootWindow());
+    Atom atom = XInternAtom(x11::display(), "_NET_ACTIVE_WINDOW", false);
+    unsigned long type, resultLen, rest;
+    int format;
+    WId result = 0;
+    unsigned char *data = nullptr;
+    if (XGetWindowProperty(x11::display(), root, atom, 0, 1, false, XA_WINDOW, &type, &format,
+                           &resultLen, &rest, &data)
+        == Success) {
+        result = *reinterpret_cast<long *>(data);
+        XFree(data);
+    }
+    return result;
+}
+
+QRect x11::windowFrame(WId wid)
+{
+    QRect result;
+    XWindowAttributes wa;
+    if (XGetWindowAttributes(x11::display(), wid, &wa)) {
+        Window child;
+        int x, y;
+        // translate to root coordinate
+        XTranslateCoordinates(x11::display(), wid, wa.root, 0, 0, &x, &y, &child);
+#if 0
+        qDebug("%d, %d, %d, %d", x, y, wa.width, wa.height);
 #endif
+        result.setRect(x, y, wa.width, wa.height);
+
+        // get the frame widths added by the window manager
+        Atom atom = XInternAtom(x11::display(), "_NET_FRAME_EXTENTS", false);
+        unsigned long type, resultLen, rest;
+        int format;
+        unsigned char *data = nullptr;
+        if (XGetWindowProperty(x11::display(), wid, atom, 0, LONG_MAX, false, XA_CARDINAL, &type,
+                               &format, &resultLen, &rest, &data)
+            == Success) {
+        }
+        if (data) { // left, right, top, bottom
+            long *offsets = reinterpret_cast<long *>(data);
+            result.setLeft(result.left() - offsets[0]);
+            result.setRight(result.right() + offsets[1]);
+            result.setTop(result.top() - offsets[2]);
+            result.setBottom(result.bottom() + offsets[3]);
+            XFree(data);
+        }
+    }
+    return result;
 }
 
 void x11::dontShowInTaskbar(QWidget *widget)
 {
-    // Needed for some WMs to avoid to display the window in the taskbar
-    // and task switcher and display it in all desktop (FIXME)
     Display *display = x11::display();
     Window window = widget->effectiveWinId();
     Atom state = XInternAtom(display, "_NET_WM_STATE", false);

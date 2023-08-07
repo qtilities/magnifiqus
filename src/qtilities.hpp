@@ -29,6 +29,7 @@
 #include <QStandardPaths>
 #include <QStringLiteral>
 #include <QTextStream>
+#include <QWidget>
 
 #ifndef QSL
 #define QSL(x) QStringLiteral(x)
@@ -36,13 +37,27 @@
 
 namespace Qtilities {
 
-static QScreen *findScreenAt(const QPoint &pos)
+static QScreen *screenAt(const QPoint &pos)
 {
-    for (QScreen *screen : QGuiApplication::screens()) {
+#if QT_VERSION >= QT_VERSION_CHECK(5, 10, 0)
+    return qApp->screenAt(pos);
+#else
+    const QList<QScreen*> screens = QGuiApplication::screens();
+    for (QScreen *screen : screens) {
         if (screen->geometry().contains(pos))
             return screen;
     }
     return nullptr;
+#endif
+}
+
+static void centerOnScreen(QWidget *widget)
+{
+    if (const QScreen *screen = screenAt(QCursor::pos())) {
+        QRect rct = screen->geometry();
+        widget->move((rct.width() - widget->width()) / 2,
+                     (rct.height() - widget->height()) / 2);
+    }
 }
 
 static void createAutostartFile()

@@ -46,12 +46,10 @@ private:
     void initLocale();
     void initUi();
 
-    MainWindow *mainWindow_;
+    QTranslator qtTranslator_, translator_;
     Settings settings_;
-
-    QIcon appIcon_;
-    QTranslator qtTranslator_;
-    QTranslator translator_;
     SystemTrayIcon *trayIcon_;
+    MainWindow *mainWindow_;
+    QIcon appIcon_;
 };
 } // namespace Qtilities
