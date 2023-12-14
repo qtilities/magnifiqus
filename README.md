@@ -4,7 +4,13 @@
 
 ## Overview
 
-Magnifiqus is a screen magnifier made with [Qt].
+Screen magnifier system tray tool;
+once started, a floating window appears after clicking on the tray icon.
+
+In the options you can set the visibility and size of the mouse cursor,
+whether to run the application at startup, the background and border colors of the window
+and if to keep it always on top. The zoom factor can be changed by using the mouse wheel
+over the window, from 1 to 5 times.
 
 ![Screenshot](resources/screenshot.png)
 
